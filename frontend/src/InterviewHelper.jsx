@@ -810,7 +810,8 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
           }
 
             {code.open &&
-          <div className="card code-card">
+          <>
+              <div className="card code-card">
                 <div className="code-head">
                   <div className="code-file">
                     <span className="code-dots"><i /><i /><i /></span>
@@ -826,6 +827,18 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
                   <pre className="code-pre" dangerouslySetInnerHTML={{ __html: window.cueHighlight(code.text, scn.lang) + (code.done ? "" : '<span class="cursor"></span>') }} />
                 </div>
               </div>
+
+              {approach.length > 0 &&
+            <div className="card approach-card">
+                  <div className="a-sub">Code walkthrough</div>
+                  <ol className="approach-list">
+                    {approach.map((step, i) =>
+                  <li key={i}><span className="approach-num">{i + 1}</span>{step}</li>
+                  )}
+                  </ol>
+                </div>
+            }
+            </>
           }
           </div>
         }
