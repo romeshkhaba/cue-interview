@@ -198,8 +198,9 @@ function RoleCombobox({ value, onChange }) {
 }
 import { CueMark } from "./AuthScreen.jsx";
 
-const API_URL = import.meta.env.VITE_TRANSCRIBE_URL || "/api/answer";
-const INTRO_URL = import.meta.env.VITE_INTRO_URL || "/api/intro";
+const BASE = import.meta.env.VITE_API_BASE || "";
+const API_URL = `${BASE}/api/answer`;
+const INTRO_URL = `${BASE}/api/intro`;
 
 /* icons */
 function MicIcon({ size = 24 }) {
@@ -266,6 +267,7 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
   const [audioUrl, setAudioUrl] = useState("");
   const [role, setRole] = useState("");
   const [history, setHistory] = useState([]); // [{question, answer}] last 5 exchanges
+  const [approach, setApproach] = useState([]); // step-by-step lines below code
 
   const cyc = useRef(0);
   const cancels = useRef([]);
@@ -379,7 +381,7 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
     setStatus("session");
     setPhase("thinking");
     setQText("Transcribing your question…");
-    setShortText(""); setPoints([]);
+    setShortText(""); setPoints([]); setApproach([]);
     setCode({ open: false, text: "", done: false });
     setScn(null);
 
@@ -447,6 +449,17 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
             case "code":
               live = { ...live, code: event.text, lang: event.lang || "javascript", file: event.file || "answer" };
               setScn({ ...live });
+              // auto-open and typewriter the code — no button click needed
+              setCode({ open: true, text: "", done: false });
+              cancels.current.push(
+                typewriter(event.text, (t) => setCode((c) => ({ ...c, text: t })), {
+                  speed: 8, chunk: 3, onDone: () => setCode((c) => ({ ...c, done: true })),
+                })
+              );
+              break;
+
+            case "approach":
+              setApproach((prev) => [...prev, event.text]);
               break;
 
             case "done":
@@ -478,7 +491,7 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
     clearAll();
     setStatus("session");
     setScn(s);
-    setQText("");setShortText("");setPoints([]);
+    setQText("");setShortText("");setPoints([]);setApproach([]);
     setCode({ open: false, text: "", done: false });
     setPhase("transcribe");
 
@@ -516,7 +529,7 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
     setCode({ open: true, text: "", done: false });
 
     try {
-      const res = await fetch("/api/code", {
+      const res = await fetch(`${BASE}/api/code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: scn.q, role: role.trim() }),
@@ -580,7 +593,7 @@ export default function InterviewHelper({ user, dark, onToggleTheme, onSignOut }
   function newQuestion() {
     clearAll();stopRecording();
     setStatus("idle");setScn(null);setPhase(null);
-    setQText("");setShortText("");setPoints([]);setCode({ open: false, text: "", done: false });
+    setQText("");setShortText("");setPoints([]);setApproach([]);setCode({ open: false, text: "", done: false });
   }
 
   /* ----- résumé ----- */

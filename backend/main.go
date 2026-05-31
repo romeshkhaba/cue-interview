@@ -315,6 +315,8 @@ func handleAnswer(c *gin.Context, client *openai.Client) {
 				sBuf.Reset()
 			case strings.HasPrefix(line, "POINT: "):
 				writeSSE(c.Writer, flusher, sseEvent{"type": "point", "text": strings.TrimPrefix(line, "POINT: ")})
+			case strings.HasPrefix(line, "APPROACH: "):
+				writeSSE(c.Writer, flusher, sseEvent{"type": "approach", "text": strings.TrimPrefix(line, "APPROACH: ")})
 			case strings.HasPrefix(line, "CODE_LANG: "):
 				codeLang = strings.TrimPrefix(line, "CODE_LANG: ")
 			case strings.HasPrefix(line, "CODE_FILE: "):
@@ -458,15 +460,20 @@ CODE_FILE: <filename>
 CODE_START
 <working code solution here>
 CODE_END
+APPROACH: <step-by-step explanation line 1>
+APPROACH: <step-by-step explanation line 2>
+APPROACH: <step-by-step explanation line 3>
 
 Rules:
 - The short answer between SHORT_START and SHORT_END must be 1-2 confident sentences
 - Include 3-5 POINT lines with specific, actionable talking points
-- Include CODE_LANG / CODE_FILE / CODE_START / CODE_END when:
+- Include CODE_LANG / CODE_FILE / CODE_START / CODE_END / APPROACH when:
+  * The question explicitly asks for code, an example, or a demonstration ("give me", "show me", "write", "implement", "example of")
   * The question asks to implement, write, or fix something
   * The question is about an algorithm or data structure
   * The question itself contains code (always provide a corrected, improved, or explained version)
-- Omit all code sections entirely for conceptual, behavioural, or system-design questions that contain no code`
+- When code is included, always add 3-5 APPROACH lines after CODE_END explaining the logic step by step
+- Omit all code and APPROACH sections entirely for conceptual, behavioural, or system-design questions that contain no code and do not ask for an example`
 }
 
 type codeRequest struct {
