@@ -5,3 +5,5 @@ buildCommand = "go build -o cue-backend ."
 [deploy]
 startCommand = "./cue-backend"
 restartPolicyType = "on_failure"
+healthcheckPath = "/health"
+healthcheckTimeout = 10
