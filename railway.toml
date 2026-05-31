@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd backend && go build -o cue-backend ."
+
+[deploy]
+startCommand = "./backend/cue-backend"
+restartPolicyType = "on_failure"
