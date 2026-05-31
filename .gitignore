@@ -1,0 +1,11 @@
+# root-level ignores
+.env
+*.env.local
+
+# compiled binaries
+cue
+interview-assistant
+backend/cue-backend
+
+# OS
+.DS_Store
